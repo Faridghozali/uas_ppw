@@ -2,5 +2,4 @@ pandas
 streamlit
 numpy
 joblib
-pip install scikit-learn
-
+scikit-learn
