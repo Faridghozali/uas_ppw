@@ -4,22 +4,19 @@ import numpy as np
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 
 Data, lda, Model, Implementasi = st.tabs(['Data', 'LDA', 'Modelling', 'Implementasi'])
 
 with Data:
-   st.title("Impelementasi Latent Dirichlet Allocation (LDA) ")
+   st.title("UAS Pencarian & Penambangan Web A")
    st.text("Farid Ghozali - 210411100119")
    st.subheader("Deskripsi Data")
-   st.write("Fitur Fitur yang ada diantaranya:")
-   st.text("Fitur-fitur data:")
-   st.text("1) Judul")
-   st.text("2) Isi")
-   st.text("3) Label")
+   st.write("Dimana Fitur yang ada di dalam data tersebut diantaranya:")
+   st.text("1) Date\n2) Title\n3) Content\n4) Label")
    st.subheader("Data")
    data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
    st.write(data)
@@ -59,10 +56,10 @@ with Model:
     y = df['Label'].values
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    # Pelatihan model Random Forest dengan data pelatihan
-    model1 = RandomForestClassifier(n_estimators=100, random_state=42)
+    model1 = KNeighborsClassifier(5)
+    # Pelatihan model KNN dengan data pelatihan
     model1.fit(X_train, y_train)
-   
+
     model2 = MultinomialNB()
     # Pelatihan model Naive Bayes dengan data pelatihan
     model2.fit(X_train, y_train)
@@ -72,14 +69,14 @@ with Model:
     model3.fit(X_train, y_train)
 
     st.write("Pilih metode yang ingin anda gunakan :")
-    met1 = st.checkbox("Random Forest")
+    met1 = st.checkbox("KNN")
     met2 = st.checkbox("Naive Bayes")
     met3 = st.checkbox("Decision Tree")
     submit2 = st.button("Pilih")
 
     if submit2:      
         if met1:
-            st.write("Metode yang Anda gunakan Adalah Random Forest")
+            st.write("Metode yang Anda gunakan Adalah KNN")
             # Prediksi label kelas pada data pengujian
             y_pred = model1.predict(X_test)
             # Mengukur akurasi model
@@ -131,18 +128,18 @@ with Implementasi:
         return cleaned_text
 
     st.subheader("Implementasi")
-    st.write("Masukkan Content yang Ingin Dianalisis:")
-    user_content = st.text_area("Content", "")
+    st.write("Masukkan Berita yang Ingin Dianalisis:")
+    user_abstract = st.text_area("Abstrak", "")
 
-    if user_content:
-        # Preproses content
-        preprocessed_content = preprocess_text(user_content)
+    if user_abstract:
+        # Preproses abstrak
+        preprocessed_abstract = preprocess_text(user_abstract)
 
         # Fit vocabulary dengan data latih
-        count_vectorizer.fit(data['Content'])
+        count_vectorizer.fit(data['Abstrak'])
 
         # Transform abstrak pengguna dengan count_vectorizer
-        user_tf = count_vectorizer.transform([preprocessed_content])
+        user_tf = count_vectorizer.transform([preprocessed_abstract])
        
         if lda_model is None:
             lda_model = LatentDirichletAllocation(n_components=topik, doc_topic_prior=0.2, topic_word_prior=0.1, random_state=42, max_iter=1)
