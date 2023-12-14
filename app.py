@@ -21,7 +21,7 @@ with Data:
    st.text("2) Isi")
    st.text("3) Label")
    st.subheader("Data")
-   data = pd.read_csv("data_berita.csv")
+   data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
    st.write(data)
 
 with lda:
@@ -103,7 +103,7 @@ with Model:
             st.write("Anda Belum Memilih Metode")
 
 with Implementasi:
-    data = pd.read_csv("data_berita.csv")
+    data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
     data['Content'].fillna("", inplace=True)
     count_vectorizer = CountVectorizer(max_df=0.95, min_df=2)
     
