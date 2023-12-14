@@ -14,7 +14,7 @@ Data, lda, Model, Implementasi = st.tabs(['Data', 'LDA', 'Modelling', 'Implement
 
 with Data:
    st.title("UAS Pencarian & Penambangan Web A")
-   st.text("Okhi Sahrul Barkah - 210411100112")
+   st.text("Farid Ghozali - 210411100119")
    st.subheader("Deskripsi Data")
    st.write("Dimana Fitur yang ada di dalam data tersebut diantaranya:")
    st.text("1) Date\n2) Title\n3) Content\n4) Label")
