@@ -1,153 +1,126 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import accuracy_score
+import re
 
-Data, lda, Model, Implementasi = st.tabs(['Data', 'LDA', 'Modelling', 'Implementasi'])
+# Fungsi untuk membersihkan dan normalisasi teks
+def preprocess_text(text):
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = text.lower()
+    words = text.split()
+    words = [word for word in words if word not in custom_stopwords]
+    cleaned_text = ' '.join(words)
+    return cleaned_text
 
-with Data:
-   st.title("UAS Pencarian & Penambangan Web A")
-   st.text("Farid Ghozali - 210411100119")
-   st.subheader("Deskripsi Data")
-   st.write("Dimana Fitur yang ada di dalam data tersebut diantaranya:")
-   st.text("1) Date\n2) Title\n3) Content\n4) Label")
-   st.subheader("Data")
-   data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
-   st.write(data)
+# Fungsi untuk modeling dan evaluasi
+def model_and_evaluate(X_train, X_test, y_train, y_test, model):
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    return accuracy
 
-with lda:
-   topik = st.number_input("Masukkan Jumlah Topik yang Diinginkan", 1, step=1, value=5)
-   lda_model = None  # Inisialisasi lda_model
+# Load data
+data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
+data['Content'].fillna("", inplace=True)
 
-   def submit():
-      tf = pd.read_csv("df_tf.csv")
-      lda = LatentDirichletAllocation(n_components=topik, doc_topic_prior=0.2, topic_word_prior=0.1, random_state=42, max_iter=1)
-      lda_top = lda.fit_transform(tf)
-      # Bobot setiap topik terhadap dokumen
-      nama_clm = [f"Topik {i+1}" for i in range(topik)]
-      U = pd.DataFrame(lda_top, columns=nama_clm)
-      data_with_lda = pd.concat([U, data['Label']], axis=1)
-      st.write(data_with_lda)
+# Membuat list custom stop words dalam bahasa Indonesia
+custom_stopwords = ["yang", "dan", "di", "dengan", "untuk", "pada", "adalah", "ini", "itu", "atau", "juga"]
 
-   all = st.button("Submit")
-   if all:
-      submit() 
+# Fungsi untuk pembersihan dan normalisasi data
+df = data.dropna(subset=['Label', 'Label'])
+df = df.fillna(0)  # Gantilah nilai-nilai yang hilang dengan 0 atau nilai lain yang sesuai
 
-with Model:
-    tf = pd.read_csv("df_tf.csv")
-    st.subheader("Jumlah Topik yang Anda Gunakan : " + str(topik))
+# Pisahkan fitur dan label
+X = df.drop(columns=['Label']).values
+y = df['Label'].values
+
+# Latih model LDA
+topik = st.number_input("Masukkan Jumlah Topik yang Diinginkan", 1, step=1, value=5)
+lda_model = LatentDirichletAllocation(n_components=topik, doc_topic_prior=0.2, topic_word_prior=0.1, random_state=42, max_iter=1)
+lda_top = lda_model.fit_transform(X)
+
+# Bobot setiap topik terhadap dokumen
+nama_clm = [f"Topik {i+1}" for i in range(topik)]
+U = pd.DataFrame(lda_top, columns=nama_clm)
+data_with_lda = pd.concat([U, df['Label']], axis=1)
+
+# Bagian Data
+st.title("UAS Pencarian & Penambangan Web A")
+st.text("Farid Ghozali - 210411100119")
+st.subheader("Deskripsi Data")
+st.write("Dimana Fitur yang ada di dalam data tersebut diantaranya:")
+st.text("1) Date\n2) Title\n3) Content\n4) Label")
+st.subheader("Data")
+st.write(data)
+
+# Bagian LDA
+with st.expander("LDA"):
+    st.write("Jumlah Topik yang Anda Gunakan : " + str(topik))
     st.write("Jika pada menu LDA tidak menentukan jumlah topiknya maka proses modelling akan di default dengan jumlah topik = 5")
-    lda = LatentDirichletAllocation(n_components=topik, doc_topic_prior=0.2, topic_word_prior=0.1, random_state=42, max_iter=1)
-    lda_top = lda.fit_transform(tf)
-    # Bobot setiap topik terhadap dokumen
-    nama_clm = [f"Topik {i+1}" for i in range(topik)]
-    U = pd.DataFrame(lda_top, columns=nama_clm)
-    data_with_lda = pd.concat([U, data['Label']], axis=1)
-   
-    df = data_with_lda.dropna(subset=['Label', 'Label'])
+    st.dataframe(data_with_lda)
 
-    X = df.drop(columns=['Label']).values
-    y = df['Label'].values
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-    model1 = KNeighborsClassifier(5)
-    # Pelatihan model KNN dengan data pelatihan
-    model1.fit(X_train, y_train)
-
-    model2 = MultinomialNB()
-    # Pelatihan model Naive Bayes dengan data pelatihan
-    model2.fit(X_train, y_train)
-
-    model3 = DecisionTreeClassifier()
-    # Pelatihan model Decision Tree dengan data pelatihan
-    model3.fit(X_train, y_train)
-
+# Bagian Modeling
+with st.expander("Modelling"):
     st.write("Pilih metode yang ingin anda gunakan :")
     met1 = st.checkbox("KNN")
     met2 = st.checkbox("Naive Bayes")
     met3 = st.checkbox("Decision Tree")
     submit2 = st.button("Pilih")
 
-    if submit2:      
+    if submit2:
         if met1:
             st.write("Metode yang Anda gunakan Adalah KNN")
-            # Prediksi label kelas pada data pengujian
-            y_pred = model1.predict(X_test)
-            # Mengukur akurasi model
-            accuracy = accuracy_score(y_test, y_pred)
+            model = KNeighborsClassifier(5)
+            accuracy = model_and_evaluate(X_train, X_test, y_train, y_test, model)
             st.write("Akurasi: {:.2f}%".format(accuracy * 100))
         elif met2:
             st.write("Metode yang Anda gunakan Adalah Naive Bayes")
-            # Prediksi label kelas pada data pengujian
-            y_pred = model2.predict(X_test)
-            # Mengukur akurasi model
-            accuracy = accuracy_score(y_test, y_pred)
+            model = MultinomialNB()
+            accuracy = model_and_evaluate(X_train, X_test, y_train, y_test, model)
             st.write("Akurasi: {:.2f}%".format(accuracy * 100))
         elif met3:
             st.write("Metode yang Anda gunakan Adalah Decision Tree")
-            # Prediksi label kelas pada data pengujian
-            y_pred = model3.predict(X_test)
-            # Mengukur akurasi model
-            accuracy = accuracy_score(y_test, y_pred)
+            model = DecisionTreeClassifier()
+            accuracy = model_and_evaluate(X_train, X_test, y_train, y_test, model)
             st.write("Akurasi: {:.2f}%".format(accuracy * 100))
         else:
             st.write("Anda Belum Memilih Metode")
 
-with Implementasi:
-    data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
-    data['Content'].fillna("", inplace=True)
-    count_vectorizer = CountVectorizer(max_df=0.95, min_df=2)
-    
-    import re
-
-    # Membuat list custom stop words dalam bahasa Indonesia
-    custom_stopwords = ["yang", "dan", "di", "dengan", "untuk", "pada", "adalah", "ini", "itu", "atau", "juga"]
-
-    def preprocess_text(text):
-        # Remove special characters and digits
-        text = re.sub(r'[^a-zA-Z\s]', '', text)
-        
-        # Convert to lowercase
-        text = text.lower()
-        
-        # Tokenize the text into words (using a simple space-based split)
-        words = text.split()
-        
-        # Remove custom stop words
-        words = [word for word in words if word not in custom_stopwords]
-        
-        # Join the words back into a cleaned text
-        cleaned_text = ' '.join(words)
-        
-        return cleaned_text
-
-    st.subheader("Implementasi")
+# Bagian Implementasi
+with st.expander("Implementasi"):
     st.write("Masukkan Berita yang Ingin Dianalisis:")
     user_abstract = st.text_area("Abstrak", "")
 
     if user_abstract:
-        # Preproses abstrak
-        preprocessed_abstract = preprocess_text(user_abstract)
+        preprocessed_user_abstract = preprocess_text(user_abstract)
+        user_tf = count_vectorizer.transform([preprocessed_user_abstract])
 
-        # Fit vocabulary dengan data latih
-        count_vectorizer.fit(data['Abstrak'])
-
-        # Transform abstrak pengguna dengan count_vectorizer
-        user_tf = count_vectorizer.transform([preprocessed_abstract])
-       
         if lda_model is None:
             lda_model = LatentDirichletAllocation(n_components=topik, doc_topic_prior=0.2, topic_word_prior=0.1, random_state=42, max_iter=1)
             lda_top = lda_model.fit_transform(user_tf)
             st.write("Model LDA telah dilatih.")
 
-        # Transform abstrak pengguna dengan model LDA
         user_topic_distribution = lda_model.transform(user_tf)
+
         st.write(user_topic_distribution)
-        y_pred = model2.predict(user_topic_distribution)
-        y_pred
+        st.write("Hasil Prediksi:")
+        
+        if met1:
+            predicted_label = model1.predict(user_topic_distribution)
+        elif met2:
+            predicted_label = model2.predict(user_topic_distribution)
+        elif met3:
+            predicted_label = model3.predict(user_topic_distribution)
+        else:
+            predicted_label = None
+
+        if predicted_label is not None:
+            st.write("Label Kelas: {}".format(predicted_label[0]))
+        else:
+            st.write("Anda belum memilih metode.")
