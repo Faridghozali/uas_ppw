@@ -18,7 +18,7 @@ with Data:
    st.write("Dimana Fitur yang ada di dalam data tersebut diantaranya:")
    st.text("1) Date\n2) Title\n3) Content\n4) Label")
    st.subheader("Data")
-   data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/11f7d5505b3801905984a43d0251aef7/raw/f34ffc291b0a263fc95f01ac4dd7559c3634334c/data_berita.csv")
+   data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
    st.write(data)
 
 with lda:
@@ -100,7 +100,7 @@ with Model:
             st.write("Anda Belum Memilih Metode")
 
 with Implementasi:
-    data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/11f7d5505b3801905984a43d0251aef7/raw/f34ffc291b0a263fc95f01ac4dd7559c3634334c/data_berita.csv")
+    data = pd.read_csv("https://gist.githubusercontent.com/Faridghozali/58d026e57e0e682b7dcaef9a3ce26607/raw/c8a9acebf8ec2937807c0ae2109e336b870a2829/data_berita.csv")
     data['Content'].fillna("", inplace=True)
     count_vectorizer = CountVectorizer(max_df=0.95, min_df=2)
     
